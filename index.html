@@ -439,7 +439,7 @@ footer a{color:#fff;text-decoration:underline}
           <a href="mailto:contato@mensuria.com.br" style="color:#fff">contato@mensuria.com.br</a></p>
       </div>
       <div class="formcard rv">
-        <form action="https://formspree.io/f/SEU_ENDPOINT" method="POST">
+        <form id="form-contato">
           <div class="row">
             <div><label for="nome">Nome</label><input id="nome" name="nome" type="text" autocomplete="name" required></div>
             <div><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" required></div>
@@ -449,11 +449,48 @@ footer a{color:#fff;text-decoration:underline}
             <div><label for="assunto">Assunto</label><input id="assunto" name="assunto" type="text"></div>
           </div>
           <div><label for="mensagem">Mensagem</label><textarea id="mensagem" name="mensagem" required></textarea></div>
-          <button class="btn btn-primary" type="submit" style="justify-content:center">Falar com a gente</button>
+          <button class="btn btn-primary" type="submit" id="btn-submit" style="justify-content:center">Falar com a gente</button>
+          <p id="form-msg" style="display:none;font-size:.875rem;margin-top:4px"></p>
           <p class="privacy" style="color:#000">Usamos seus dados apenas para responder a este contato. Não
             compartilhamos com terceiros. Para saber quais dados temos ou pedir a exclusão, escreva
             para <a href="mailto:contato@mensuria.com.br">contato@mensuria.com.br</a>.</p>
         </form>
+        <script>
+          document.getElementById('form-contato').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            const msg = document.getElementById('form-msg');
+            btn.disabled = true;
+            btn.textContent = 'Enviando…';
+            try {
+              const res = await fetch('/api/contato', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  nome: this.nome.value,
+                  email: this.email.value,
+                  telefone: this.telefone.value,
+                  assunto: this.assunto.value,
+                  mensagem: this.mensagem.value,
+                }),
+              });
+              if (res.ok) {
+                msg.style.color = '#046f7c';
+                msg.textContent = 'Mensagem enviada. Retornamos em breve!';
+                this.reset();
+              } else {
+                throw new Error();
+              }
+            } catch {
+              msg.style.color = '#c0392b';
+              msg.textContent = 'Erro ao enviar. Tente novamente ou escreva direto para contato@mensuria.com.br.';
+            } finally {
+              msg.style.display = 'block';
+              btn.disabled = false;
+              btn.textContent = 'Falar com a gente';
+            }
+          });
+        </script>
       </div>
     </div>
   </section>
